@@ -1,126 +1,80 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 
-// Represents a word in the scripture
-public class ScriptureWord
+namespace Program
 {
-    public string Text { get; set; }
-    public bool IsHidden { get; set; }
-
-    public ScriptureWord(string text)
+    class Program
     {
-        Text = text;
-        IsHidden = false;
-    }
-
-    public string GetDisplayText()
-    {
-        return IsHidden ? new string('_', Text.Length) : Text;
-    }
-}
-
-// Represents a scripture reference
-public class ScriptureReference
-{
-    public string Book { get; set; }
-    public int Chapter { get; set; }
-    public int StartVerse { get; set; }
-    public int? EndVerse { get; set; }
-
-    public ScriptureReference(string book, int chapter, int verse)
-    {
-        Book = book;
-        Chapter = chapter;
-        StartVerse = verse;
-    }
-
-    public ScriptureReference(string book, int chapter, int startVerse, int endVerse)
-    {
-        Book = book;
-        Chapter = chapter;
-        StartVerse = startVerse;
-        EndVerse = endVerse;
-    }
-
-    public override string ToString()
-    {
-        if (EndVerse.HasValue)
+        static void Main(string[] args)
         {
-            return $"{Book} {Chapter}:{StartVerse}-{EndVerse}";
-        }
-        else
-        {
-            return $"{Book} {Chapter}:{StartVerse}";
-        }
-    }
-}
+            var journal = new Journal();
+            var promptProvider = new PromptProvider();
+            var fileManager = new FileManager();
 
-// Represents a scripture
-public class Scripture
-{
-    public ScriptureReference Reference { get; set; }
-    public ScriptureWord[] Words { get; set; }
-
-    public Scripture(string referenceBook, int referenceChapter, int referenceVerse, string text)
-    {
-        Reference = new ScriptureReference(referenceBook, referenceChapter, referenceVerse);
-        Words = text.Split(' ').Select(word => new ScriptureWord(word)).ToArray();
-    }
-
-    public Scripture(string referenceBook, int referenceChapter, int referenceStartVerse, int referenceEndVerse, string text)
-    {
-        Reference = new ScriptureReference(referenceBook, referenceChapter, referenceStartVerse, referenceEndVerse);
-        Words = text.Split(' ').Select(word => new ScriptureWord(word)).ToArray();
-    }
-
-    public void HideRandomWords(int count)
-    {
-        var random = new Random();
-        var visibleWords = Words.Where(word => !word.IsHidden).ToArray();
-        var wordsToHide = visibleWords.OrderBy(word => random.Next()).Take(count);
-        foreach (var word in wordsToHide)
-        {
-            word.IsHidden = true;
-        }
-    }
-
-    public bool AreAllWordsHidden()
-    {
-        return Words.All(word => word.IsHidden);
-    }
-
-    public override string ToString()
-    {
-        return $"{Reference}\n{string.Join(" ", Words.Select(word => word.GetDisplayText()))}";
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        var scripture = new Scripture("John", 3, 16, "For God so loved the world that he gave his one and only Son that whoever believes in him shall not perish but have eternal life");
-        
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine(scripture);
-            Console.Write("Press Enter to hide more words or type 'quit' to exit: ");
-            var input = Console.ReadLine();
-            if (input.ToLower() == "quit")
+            while (true)
             {
-                break;
-            }
-            scripture.HideRandomWords(3);
-            if (scripture.AreAllWordsHidden())
-            {
-                Console.Clear();
-                Console.WriteLine(scripture);
-                break;
+                Console.WriteLine("1. Write a new entry");
+                Console.WriteLine("2. Display the journal");
+                Console.WriteLine("3. Save the journal to a file");
+                Console.WriteLine("4. Load the journal from a file");
+                Console.WriteLine("5. Exit");
+
+                Console.Write("Choose an option: ");
+                var option = Console.ReadLine();
+
+                switch (option)
+                {
+                    case "1":
+                        var prompt = promptProvider.GetRandomPrompt();
+                        Console.WriteLine(prompt);
+                        var response = Console.ReadLine();
+                        var entry = new Entry(prompt, response, DateTime.Now.ToString("yyyy-MM-dd"));
+                        journal.AddEntry(entry);
+                        break;
+                    case "2":
+                        journal.DisplayEntries();
+                        break;
+                    case "3":
+                        Console.Write("Enter filename: ");
+                        var filename = Console.ReadLine();
+                        try
+                        {
+                            fileManager.SaveJournal(journal.Entries, filename);
+                            Console.WriteLine("Journal saved successfully.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error saving journal: " + ex.Message);
+                        }
+                        break;
+                    case "4":
+                        Console.Write("Enter filename: ");
+                        filename = Console.ReadLine();
+                        try
+                        {
+                            var loadedEntries = fileManager.LoadJournal(filename);
+                            if (loadedEntries != null)
+                            {
+                                journal.Entries = loadedEntries;
+                                Console.WriteLine("Journal loaded successfully.");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Failed to load journal.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error loading journal: " + ex.Message);
+                        }
+                        break;
+                    case "5":
+                        return;
+                    default:
+                        Console.WriteLine("Invalid option. Please choose again.");
+                        break;
+                }
             }
         }
     }
-} 
-
+}
