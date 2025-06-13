@@ -68,7 +68,8 @@ class Program
             Console.WriteLine("1. Breathing Activity");
             Console.WriteLine("2. Reflection Activity");
             Console.WriteLine("3. Listing Activity");
-            Console.WriteLine("4. Quit");
+            Console.WriteLine("4. Gratitude Activity");
+            Console.WriteLine("5. Quit");
             Console.Write("Choose an activity: ");
             string choice = Console.ReadLine();
             switch (choice)
@@ -86,6 +87,10 @@ class Program
                     listingActivity.Run();
                     break;
                 case "4":
+                    GratitudeActivity gratitudeActivity = new GratitudeActivity();
+                    gratitudeActivity.Run();
+                    break;
+                case "5":
                     return;
                 default:
                     Console.WriteLine("Invalid choice. Please choose a valid activity.");
