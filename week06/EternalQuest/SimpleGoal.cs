@@ -1,5 +1,3 @@
-using System;
-
 // Simple goal class
 public class SimpleGoal : Goal
 {

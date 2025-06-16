@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 
 // Base class for goals
@@ -45,7 +42,7 @@ class Program
                 case "1":
                     CreateGoal();
                     break;
-                case "2 = 2":
+                case "2":
                     RecordEvent();
                     break;
                 case "3":
@@ -145,13 +142,16 @@ class Program
 
     static void SaveGoals()
     {
+        var options = new JsonSerializerOptions();
+        options.Converters.Add(new GoalConverter());
+
         var goalsData = new GoalsData
         {
             Goals = _goals,
             Score = _score
         };
 
-        string json = JsonSerializer.Serialize(goalsData);
+        string json = JsonSerializer.Serialize(goalsData, options);
         File.WriteAllText("goals.json", json);
     }
 
@@ -159,8 +159,11 @@ class Program
     {
         if (File.Exists("goals.json"))
         {
+            var options = new JsonSerializerOptions();
+            options.Converters.Add(new GoalConverter());
+
             string json = File.ReadAllText("goals.json");
-            var goalsData = JsonSerializer.Deserialize<GoalsData>(json);
+            var goalsData = JsonSerializer.Deserialize<GoalsData>(json, options);
             _goals = goalsData.Goals;
             _score = goalsData.Score;
         }

@@ -1,5 +1,3 @@
-using System;
-
 // Checklist goal class
 public class ChecklistGoal : Goal
 {
